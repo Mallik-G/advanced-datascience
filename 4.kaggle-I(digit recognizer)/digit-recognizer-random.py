@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 
 os.getcwd()
-os.chdir("D:\\digit_recognizer")
+os.chdir("C:\\Users\\Thimma Reddy\\Documents\\GitHub\\datascience\\2014\\kaggle\\digit-recognizer")
 
 digit_train = pd.read_csv("train.csv")
 digit_train.shape
