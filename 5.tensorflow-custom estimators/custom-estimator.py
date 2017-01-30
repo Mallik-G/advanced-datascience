@@ -5,8 +5,6 @@ from tensorflow.contrib import losses
 from sklearn import model_selection
 import numpy as np
 import os
-from tensorflow.python.ops import init_ops
-
 
 # Set logging level to info to see detailed log output
 tf.logging.set_verbosity(tf.logging.INFO)
@@ -25,32 +23,6 @@ y = sample.target
 X_train,X_validation,y_train,y_validation = model_selection.train_test_split(X,y, test_size=0.2, random_state=100)
 type(X_train)
 
-#features = tf.random_uniform((5, 3 * 3 * 3), seed=1)
-features = tf.constant([[1,2],[1,1]], dtype=tf.float32)
-layer = layers.fully_connected(inputs=features, 
-                               weights_initializer=tf.constant_initializer([1.0,1.0]), 
-                               biases_initializer=tf.constant_initializer([1.0]),
-                                                 num_outputs=2,
-                                                 activation_fn=tf.nn.softmax)
-targets = tf.constant([1,1,1,0], dtype=tf.float32)
-outputs = tf.constant([0,0,0,1], dtype=tf.float32)
-sq_loss1 = losses.mean_squared_error(outputs, targets)
-log_loss1 = losses.log_loss(outputs, targets)
-
-outputs = tf.constant([[100.0, -100.0, -100.0],
-                      [-100.0, 100.0, -100.0],
-                      [-100.0, -100.0, 100.0]])
-targets = tf.constant([[0, 0, 1],
-                      [1, 0, 0],
-                      [0, 1, 0]])
-sq_loss2 = losses.mean_squared_error(outputs, targets)
-
-session = tf.Session()
-session.run(tf.initialize_all_variables())
-session.run(sq_loss2)
-session.run(log_loss2)
-
-
 
 # creating custom estimator
 def model_function(features, targets, mode):
@@ -59,10 +31,9 @@ def model_function(features, targets, mode):
   targets = tf.one_hot(targets, 2, 1, 0)
 
   # Configure the single layer perceptron model
-  layer = layers.fully_connected(inputs=features,
+  outputs = layers.fully_connected(inputs=features,
                                                  num_outputs=2,
                                                  activation_fn=tf.sigmoid)
-  outputs = learn.models.logistic_regression_zero_init(layer, targets)
 
   # Calculate loss using mean squared error
   loss = losses.mean_squared_error(outputs, targets)
@@ -78,8 +49,7 @@ def model_function(features, targets, mode):
 
 
 #create custom estimator
-#nn = learn.Estimator(model_fn=model_function, model_dir="/home/algo/m5")
-nn = learn.Classifier(model_fn=model_function, n_classes=2, model_dir="/home/algo/m6"  )
+nn = learn.Estimator(model_fn=model_function, model_dir="/home/algo/m6")
 
 #build the model
 nn.fit(x=X_train, y=y_train, steps=2000)

@@ -1,9 +1,15 @@
+#understanding 3 layer deep neural network
+#hidden layers: relu
+#ouput layer: softmax
+#loss: cross entropy
+#SGD with eta=0.5
+
 import tensorflow as tf
 from tensorflow.contrib import learn
 from tensorflow.contrib import layers
 from tensorflow.contrib import losses
-import matplotlib.pyplot as plt
 from tensorflow.examples.tutorials.mnist import input_data
+from sklearn import metrics
 import numpy as np
 
 # Set logging level to info to see detailed log output
@@ -25,13 +31,8 @@ y_test = mnist.test.labels
 def model_function(features, targets, mode):    
 
   # Configure the single layer perceptron model
-  hlayer1 = layers.fully_connected(inputs=features,
-                                                 num_outputs=20,
-                                                 activation_fn=tf.sigmoid)
-  hlayer2 = layers.fully_connected(inputs=hlayer1,
-                                                 num_outputs=10,
-                                                 activation_fn=tf.sigmoid)
-  outputs = layers.fully_connected(inputs=hlayer2,
+  hlayers = layers.stack(features, layers.fully_connected, [20,10], activation_fn = tf.nn.relu)
+  outputs = layers.fully_connected(inputs=hlayers,
                                                  num_outputs=10,
                                                  activation_fn=None)
 
@@ -43,7 +44,7 @@ def model_function(features, targets, mode):
   optimizer = layers.optimize_loss(
       loss=loss,
       global_step=tf.contrib.framework.get_global_step(),
-      learning_rate=0.001,
+      learning_rate=0.05,
       optimizer="SGD")
 
   probs = tf.nn.softmax(outputs)
@@ -51,17 +52,22 @@ def model_function(features, targets, mode):
 
 
 #create custom estimator
-nn = learn.Estimator(model_fn=model_function, model_dir="/home/algo/m6")
+nn = learn.Estimator(model_fn=model_function, model_dir="/home/algo/m1")
 
 #build the model
-nn.fit(x=X_train, y=y_train, steps=1000, batch_size=1)
+nn.fit(x=X_train, y=y_train, steps=1000, batch_size=100)
 for var in nn.get_variable_names():
     print "%s:%s" % (var,nn.get_variable_value(var))
     
 # Predict the outcome of test data using model
 predictions = nn.predict(X_test, as_iterable=True)
+y_pred = []
 for i, p in enumerate(predictions):
-  print("Prediction %s: %s : %s" % (i + 1, p['probs'], p['labels']))
+    y_pred.append(p['labels'])
+    print("Prediction %s: %s : %s" % (i + 1, p['probs'], p['labels']))
+
+score = metrics.accuracy_score(np.argmax(y_test,1), y_pred)
+score
 
 
 
